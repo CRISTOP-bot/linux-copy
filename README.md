@@ -1,50 +1,27 @@
-# MiniOS
+# CRISTOP-bot Linux Copy
 
-## Overview
-MiniOS is a lightweight operating system designed for educational purposes. It provides a minimalistic environment for users to learn about operating system principles and development.
+## Descripción
+Este repositorio contiene un bot para realizar copias de seguridad de archivos en sistemas Linux.
 
-## Features
-- Simple user interface  
-- Multi-threading support  
-- File system management  
-- Basic networking capabilities
+## Description
+This repository contains a bot for backing up files on Linux systems.
 
-## Prerequisites
-- Basic knowledge of operating systems  
-- Familiarity with C/C++ programming language  
-- Development tools (GCC, Make, etc.)
+## Uso
+Para usar el bot, simplemente ejecute el siguiente comando:
 
-## Installation Instructions
-1. Clone the repository:  
-   `git clone https://github.com/CRISTOP-bot/linux-copy`
-2. Navigate to the project directory:  
-   `cd linux-copy`
-3. Compile the code:  
-   `make`
+```
+$ python3 bot.py
+```
 
-## Usage Guide
-Run MiniOS using the provided executable after compilation. Use the command:  
-`./minios`
+## Usage
+To use the bot, simply run the following command:
 
-## Project Structure
-- `src/` - Contains the source code
-- `include/` - Header files
-- `docs/` - Documentation files
-- `tests/` - Unit tests
+```
+$ python3 bot.py
+```
 
-## Troubleshooting
-- If you encounter compilation errors, ensure that all prerequisites are installed properly.
-- Refer to the troubleshooting guide in the `docs/` directory for common issues.
+## Contribuciones
+Las contribuciones son bienvenidas. Por favor, abra un issue o un pull request.
 
-## Contributing Guidelines
-1. Fork the repository  
-2. Create a new branch:  
-   `git checkout -b feature/YourFeature`
-3. Make your changes and commit them:  
-   `git commit -m 'Add a feature'`
-4. Push to the branch:  
-   `git push origin feature/YourFeature`
-5. Open a pull request
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+## Contributions
+Contributions are welcome. Please open an issue or a pull request.
