@@ -1,32 +1,37 @@
-## Detect cross-toolchain; fall back to native gcc/g++ with -m32 if missing
-ifeq ($(shell which i686-elf-gcc 2>/dev/null),)
-	CC = g++
+
+# =========================
+# TOOLCHAIN DETECTION
+# =========================
+
+CROSS ?= i686-elf
+
+ifeq ($(shell which $(CROSS)-gcc 2>/dev/null),)
+	CC = gcc
+	CXX = g++
 	AS = gcc
 	LD = ld
 	CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -m32 -nostdinc
 	LDFLAGS = -m elf_i386 -nostdlib
 else
-	CC = i686-elf-g++
-	AS = i686-elf-gcc
-	LD = i686-elf-ld
-	CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -m32 -nostdinc
-	LDFLAGS = -m elf_i386 -nostdlib
+	CC = $(CROSS)-gcc
+	CXX = $(CROSS)-g++
+	AS = $(CROSS)-gcc
+	LD = $(CROSS)-ld
+	CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -nostdlib
+	LDFLAGS = -nostdlib
 endif
 
-# Toolchain nativo (g++/gcc): comprobar que existen en PATH
-ifeq ($(CC),g++)
-ifeq ($(shell which g++ 2>/dev/null),)
-$(error No se encontró g++/gcc. En Ubuntu/Debian: sudo apt install build-essential gcc-multilib g++-multilib)
-endif
-ifeq ($(shell which gcc 2>/dev/null),)
-$(error No se encontró gcc. En Ubuntu/Debian: sudo apt install build-essential gcc-multilib g++-multilib)
-endif
-endif
+# =========================
+# DIRS
+# =========================
 
 BUILD_DIR = build
 ISO_DIR = iso
-
 KERNEL = $(BUILD_DIR)/kernel.bin
+
+# =========================
+# BUILD RULES
+# =========================
 
 all: $(KERNEL)
 
@@ -34,31 +39,45 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 	mkdir -p $(ISO_DIR)/boot/grub
 
+# bootloader
 $(BUILD_DIR)/boot.o: boot/boot.S | $(BUILD_DIR)
-	$(AS) -m32 -ffreestanding -c boot/boot.S -o $(BUILD_DIR)/boot.o
+	$(AS) -m32 -c $< -o $@
 
+# kernel
 $(BUILD_DIR)/kernel.o: src/kernel.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c src/kernel.cpp -o $(BUILD_DIR)/kernel.o
+	$(CXX) $(CFLAGS) -c $< -o $@
 
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o linker.ld | $(BUILD_DIR)
-	$(LD) $(LDFLAGS) -T linker.ld -o $(KERNEL) $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o
+# link kernel
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/kernel.o linker.ld
+	$(LD) -T linker.ld -o $@ $^
+
+# =========================
+# ISO
+# =========================
 
 iso: all
 	cp $(KERNEL) $(ISO_DIR)/boot/kernel.bin
+	cp grub.cfg $(ISO_DIR)/boot/grub/grub.cfg
 
-echo-iso: iso
 	grub-mkrescue -o os.iso $(ISO_DIR)
 
-# Sin ventana X (p. ej. por SSH): make run-curses  o  make run QEMU_OPTS=-display curses
-QEMU_OPTS ?=
+# =========================
+# RUN
+# =========================
 
-run: echo-iso
-	qemu-system-i386 -cdrom os.iso -m 512M $(QEMU_OPTS)
+run: iso
+	qemu-system-i386 -cdrom os.iso -m 512M
 
-run-curses: echo-iso
+run-curses: iso
 	qemu-system-i386 -cdrom os.iso -m 512M -display curses
 
-clean:
-	rm -rf $(BUILD_DIR) os.iso $(ISO_DIR)/boot/kernel.bin
+# =========================
+# CLEAN
+# =========================
 
-.PHONY: all iso echo-iso run run-curses clean
+clean:
+	rm -rf $(BUILD_DIR)
+	rm -rf $(ISO_DIR)/boot/kernel.bin
+	rm -rf os.iso
+
+.PHONY: all iso run run-curses clean
