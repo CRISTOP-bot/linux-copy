@@ -8,13 +8,32 @@ echo "[+] Detectando sistema..."
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
+    LIKE=${ID_LIKE:-}
 else
     echo "No se pudo detectar el sistema operativo."
     exit 1
 fi
 
+# Detectar familia real
+if [[ "$OS" =~ (ubuntu|debian) || "$LIKE" =~ (debian) ]]; then
+    DISTRO="debian"
+elif [[ "$OS" =~ (arch) || "$LIKE" =~ (arch) ]]; then
+    DISTRO="arch"
+elif [[ "$OS" =~ (fedora) ]]; then
+    DISTRO="fedora"
+else
+    echo "Distribución no soportada: $OS"
+    exit 1
+fi
+
+# Verificar sudo
+if ! command -v sudo >/dev/null 2>&1; then
+    echo "sudo no está instalado."
+    exit 1
+fi
+
 install_debian() {
-    echo "[+] Instalando dependencias (Debian/Ubuntu)..."
+    echo "[+] Instalando dependencias (Debian-based)..."
     sudo apt-get update -qq
     sudo apt-get install -y \
         build-essential \
@@ -27,8 +46,8 @@ install_debian() {
 }
 
 install_arch() {
-    echo "[+] Instalando dependencias (Arch)..."
-    sudo pacman -Sy --noconfirm \
+    echo "[+] Instalando dependencias (Arch-based)..."
+    sudo pacman -Syu --noconfirm \
         base-devel \
         qemu \
         grub \
@@ -47,20 +66,10 @@ install_fedora() {
         xorriso
 }
 
-case "$OS" in
-    ubuntu|debian)
-        install_debian
-        ;;
-    arch)
-        install_arch
-        ;;
-    fedora)
-        install_fedora
-        ;;
-    *)
-        echo "Distribución no soportada: $OS"
-        exit 1
-        ;;
+case "$DISTRO" in
+    debian) install_debian ;;
+    arch) install_arch ;;
+    fedora) install_fedora ;;
 esac
 
 echo ""
