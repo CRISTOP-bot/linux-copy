@@ -1,4 +1,6 @@
-# CRISTOP-bot Linux Copy
+#PROYECTO ABANDONADO!!!
+
+CRISTOP-bot Linux Copy
 
 ## Descripción
 Este repositorio contiene un bot para realizar copias de seguridad de archivos en sistemas Linux.
